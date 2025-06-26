@@ -1,0 +1,13 @@
+{{ define "audiocardTemplate" }} {{range .}}
+<div class="audiocard">
+  <p class="audiocard__header">{{ .Name }}</p>
+  <p class="audiocard__path">{{ .Path }}</p>
+  <button
+    hx-get="/api/play?path={{ .Path }}"
+    hx-swap="beforeend"
+    hx-target="#now-playing"
+  >
+    Play
+  </button>
+</div>
+{{end}} {{end}}

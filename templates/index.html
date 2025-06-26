@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.5/dist/htmx.min.js"
+      integrity="sha384-t4DxZSyQK+0Uv4jzy5B0QyHyWQD2GFURUmxKMBVww9+e2EJ0ei/vCvv7+79z0fkr"
+      crossorigin="anonymous"
+    ></script>
+    <title>{{ .Title }}</title>
+    <style>
+      body {
+        max-width: 800px;
+        margin: auto;
+        font-size: 16px;
+      }
+      .audio-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 1rem;
+      }
+      .audiocard {
+        background: #ddd;
+        border-radius: 4px;
+        padding: 1rem;
+      }
+      .audiocard__header {
+        font-weight: bold;
+      }
+      .audiocard__path {
+        font-style: italic;
+      }
+      .search-bar {
+        width: 100%;
+        margin: 1rem 0;
+        height: 2rem;
+        border-radius: 4px;
+        border: 1px solid #444;
+      }
+      #now-playing {
+        width: 100vw;
+        height: 200px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background: #eee;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{ .Title }}</h1>
+    <input
+      class="search-bar"
+      type="search"
+      name="s"
+      hx-get="/api/audio"
+      hx-trigger="input changed delay:500ms, keup[key=='Enter'], load"
+      hx-target="#audio-list"
+    />
+    <div class="audio-list" id="audio-list"></div>
+    <div id="now-playing"></div>
+  </body>
+</html>
