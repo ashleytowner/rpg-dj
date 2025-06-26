@@ -109,6 +109,16 @@ func getAudioFiles(dirPath string, urlPrefix string) ([]AudioFile, error) {
 					Path: urlPath,
 				})
 			}
+		} else {
+			subDirURLPrefix := filepath.Join(urlPrefix, entry.Name())
+			subDirURLPrefix = strings.ReplaceAll(subDirURLPrefix, "\\", "/")
+
+			subAudioFiles, err := getAudioFiles(filepath.Join(dirPath, entry.Name()), subDirURLPrefix)
+
+			if err != nil {
+				return nil, err
+			}
+			audioFiles = append(audioFiles, subAudioFiles...)
 		}
 	}
 
