@@ -1,8 +1,0 @@
-{{ define "audioplayerTemplate" }}
-<div class="audiocard">
-  <p class="audiocard__header">{{ .Name }}</p>
-  <p class="audiocard__path">{{ .Path }}</p>
-  <audio src="{{ .Path }}" controls autoplay></audio>
-  <button onclick="this.closest('.audiocard').remove()">Stop</button>
-</div>
-{{end}}

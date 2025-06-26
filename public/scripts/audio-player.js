@@ -79,6 +79,7 @@ class AudioPlayer extends HTMLElement {
           .main .info #path {
             font-style: italic;
             color: hsl(0, 0%, 80%);
+            word-break: break-all;
           }
           .progress input {
             width: 100%;
@@ -90,7 +91,7 @@ class AudioPlayer extends HTMLElement {
           }
           .actions {
             flex-direction: column;
-            justify-content: space-evenly;
+            justify-content: space-between;
           }
           .actions svg {
             height: 1.2rem;
@@ -109,7 +110,7 @@ class AudioPlayer extends HTMLElement {
         </div>
         <div class="main">
           <div class="info">
-            <span id="name">Song Name</span>
+            <span id="name"></span>
             <span id="path"></span>
           </div>
           <button id="play-pause">${playSVG}</button>
@@ -126,7 +127,7 @@ class AudioPlayer extends HTMLElement {
           <input type="checkbox" id="loop" />
           <label for="loop">${loopSVG}</label>
         </div>
-        <audio id="audio" src=""></audio>
+        <audio id="audio" src="" autoplay></audio>
       </div>
     `;
 
@@ -195,10 +196,12 @@ class AudioPlayer extends HTMLElement {
     });
 
     this.path = shadowRoot.getElementById("path");
+
+    this.name = shadowRoot.getElementById("name");
   }
 
   static get observedAttributes() {
-    return ["src"];
+    return ["src", "label"];
   }
 
   attributeChangedCallback(name, _, newValue) {
@@ -206,6 +209,9 @@ class AudioPlayer extends HTMLElement {
       this.audio.src = newValue;
       this.path.innerText = newValue;
       this.audio.load();
+    }
+    if (name === "label" && newValue) {
+      this.name.innerText = newValue;
     }
   }
 
@@ -243,6 +249,9 @@ class AudioPlayer extends HTMLElement {
     if (this.hasAttribute("src")) {
       this.audio.src = this.getAttribute("src");
       this.path.innerText = this.getAttribute("src");
+    }
+    if (this.hasAttribute("label")) {
+      this.name.innerText = this.getAttribute("label");
     }
   }
 }
