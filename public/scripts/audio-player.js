@@ -157,6 +157,11 @@ class AudioPlayer extends HTMLElement {
 
     this.audio.addEventListener("ended", () => {
       this.playPauseButton.innerHTML = playSVG;
+
+      // Remove if we finish the audio, and we aren't looping
+      if (!this.loop.checked) {
+        this.parentNode.removeChild(this);
+      }
     });
 
     this.scrubber = shadowRoot.getElementById("scrubber");
