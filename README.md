@@ -14,6 +14,9 @@ with a few key changes, to fix issues I've had with other TTRPG audio software.
 - It is fully searchable, so you can find the right sound at the right moment
 - There's no subscription, you can just run it locally
 
+![image](https://github.com/user-attachments/assets/08b610ab-b589-4155-9128-0aab19992c4d)
+
+
 ## How to Use
 
 ### Sharing the audio
