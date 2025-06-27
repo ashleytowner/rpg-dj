@@ -1,4 +1,4 @@
-module ttrpg-audio-player
+module rpg-dj
 
 go 1.24.4
 
