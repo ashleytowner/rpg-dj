@@ -36,7 +36,8 @@ from Michael Ghelfi Studios, mostly the audio from their bandcamp.
 
 1. Ensure `go` is installed
 2. Put all the audio files you want to use into the `audio/` directory
-3. Run `go run .`
+3. Set up a database, and put the URL to it in the `DB_URL` in the `.env` file
+4. Run `go run .`
 
 ## Upcoming Features
 

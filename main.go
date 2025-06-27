@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"html/template"
 	"log"
 	"net/http"
@@ -11,72 +14,141 @@ import (
 )
 
 type AudioFile struct {
+	Id string `json:"string"`
 	Name string `json:"name"`
 	Path string `json:"path"`
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Could not load .env file %v", err)
+	}
 	audioFS := http.FileServer(http.Dir("./audio"))
 	http.Handle("/audio/", http.StripPrefix("/audio/", audioFS))
 	publicFS := http.FileServer(http.Dir("./public"))
 	http.Handle("/", http.StripPrefix("/", publicFS))
 
-	audioFiles, err := getAudioFiles("./audio/", "/audio/")
-
-	if err != nil {
-		fmt.Printf("Error getting audio files %v\n", err)
-		log.Fatalf("Server setup failed: %v", err)
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		log.Fatal("DB_URL was undefined")
 	}
 
-	http.HandleFunc("/api/sound", func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query()
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatalf("Error opening database %v", err)
+	}
+	defer db.Close()
 
-		path := query.Get("path")
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Error connecting to the database %v", err)
+	}
 
-		tmpl := template.Must(template.ParseFiles("./templates/audio-player.html"))
+	fmt.Println("Successfully connected to database")
 
-		var matchedFile AudioFile
+	shouldIndex := false
 
-		for _, file := range audioFiles {
-			if file.Path == path {
-				matchedFile = file
-				break
-			}
+	if shouldIndex {
+		fmt.Println("Indexing audio files...")
+
+		audioFiles, err := getAudioFiles("./audio/", "/audio/")
+
+		if err != nil {
+			fmt.Printf("Error getting audio files %v\n", err)
+			log.Fatalf("Server setup failed: %v", err)
 		}
 
-		if matchedFile.Path == "" {
-			http.Error(w, "Could not find audio file", http.StatusNotFound)
-		} else {
-			err := tmpl.ExecuteTemplate(w, "audio-player.html", matchedFile)
-
+		for _, file := range audioFiles {
+			stmt, err := db.Prepare("insert into sounds (name, path) values ($1, $2)")
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Fatalf("Error preparing statement %v", err)
 			}
+			defer stmt.Close()
+			_, err = stmt.Exec(file.Name, file.Path)
+			if err != nil {
+				fmt.Printf("Error executing statement %v", err)
+			}
+		}
+	}
+
+	tmpl := template.Must(template.ParseGlob("./templates/*.html"))
+
+	http.HandleFunc("/api/sound/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+
+		stmt, err := db.Prepare("select Id, Name, Path from sounds where id = $1")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer stmt.Close()
+
+		var audiofile AudioFile
+		err = stmt.QueryRow(id).Scan(&audiofile.Id, &audiofile.Name, &audiofile.Path)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.NotFound(w, r)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = tmpl.ExecuteTemplate(w, "audio-player.html", audiofile)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 	})
 
 	http.HandleFunc("/api/sounds", func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("./templates/audio-list.html"))
 
 		values := r.URL.Query()
 
-		var filteredAudio []AudioFile
+		var rows *sql.Rows
 
 		if values.Get("search") != "" {
-			searchTerm := strings.ToLower(values.Get("search"))
-			for _, file := range audioFiles {
-				lowerPath := strings.ToLower(file.Path)
-
-				if strings.Contains(lowerPath, searchTerm) {
-					filteredAudio = append(filteredAudio, file)
-				}
+			searchTerm := values.Get("search")
+			stmt, err := db.Prepare("select Id, Name, Path from sounds where path ilike $1")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+			defer stmt.Close()
+
+			rows, err = stmt.Query("%" + searchTerm + "%")
 		} else {
-			filteredAudio = audioFiles
+			stmt, err := db.Prepare("select Id, Name, Path from sounds")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			rows, err = stmt.Query()
 		}
 
-		err := tmpl.ExecuteTemplate(w, "audio-list.html", filteredAudio)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var sounds []AudioFile
+		for rows.Next() {
+			var sound AudioFile
+			err := rows.Scan(&sound.Id, &sound.Name, &sound.Path)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			sounds = append(sounds, sound)
+		}
+
+		err := tmpl.ExecuteTemplate(w, "audio-list.html", sounds)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
