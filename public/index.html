@@ -14,28 +14,28 @@
     ></script>
   </head>
   <body>
-    <input
-      class="search-bar"
-      type="search"
-      name="search"
-      hx-get="/api/sounds"
-      hx-trigger="input changed delay:500ms, keup[key=='Enter'], load"
-      hx-target=".audio-list"
-    />
-    <main>
-      <div class="audio-list"></div>
-      <div class="now-playing"></div>
-    </main>
     <button
-      class="toggle-button"
-      onclick="document.querySelector('.now-playing').classList.toggle('visible')"
+      class="sound-list-toggle"
+      onclick="document.querySelector('.sound-list').classList.toggle('open')"
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
         <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
         <path
-          d="M499.1 6.3c8.1 6 12.9 15.6 12.9 25.7l0 72 0 264c0 44.2-43 80-96 80s-96-35.8-96-80s43-80 96-80c11.2 0 22 1.6 32 4.6L448 147 192 223.8 192 432c0 44.2-43 80-96 80s-96-35.8-96-80s43-80 96-80c11.2 0 22 1.6 32 4.6L128 200l0-72c0-14.1 9.3-26.6 22.8-30.7l320-96c9.7-2.9 20.2-1.1 28.3 5z"
+          d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
         />
       </svg>
     </button>
+    <section class="sound-list">
+      <input
+        type="search"
+        name="search"
+        hx-get="/api/sounds"
+        hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
+        hx-target="#search-results"
+        placeholder="Search for sounds..."
+      />
+      <div id="search-results"></div>
+    </section>
+    <main class="now-playing"></main>
   </body>
 </html>
