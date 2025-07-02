@@ -12,6 +12,7 @@
   --font-lg: 18px;
   --font-xl: 20px;
   --font-xxl: 22px;
+  --nav-height: 0px;
   font-size: var(--font);
   font-family: "Roboto", sans-serif;
 }
@@ -25,8 +26,18 @@ body {
   height: 100%;
 }
 
-body {
+nav {
+  height: var(--nav-height);
+  background: var(--bg-light);
   display: flex;
+  align-items: center;
+  padding: 1rem;
+  justify-content: space-between;
+}
+
+main {
+  display: flex;
+  height: calc(100% - var(--nav-height));
 }
 
 svg {
@@ -104,11 +115,22 @@ label svg {
   background: var(--bg);
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0.25rem 0.5rem;
+  position: relative;
 }
 
-.audio-list-item:hover {
-  background: var(--bg-dark);
+/* .audio-list-item:hover { */
+/*   background: var(--bg-dark); */
+/* } */
+
+.audio-list-item button {
+  background: none;
+  border: none;
+}
+
+.audio-list-item svg {
+  height: 1rem;
 }
 
 .audio-player {

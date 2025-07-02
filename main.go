@@ -3,20 +3,28 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type AudioFile struct {
-	Id string `json:"string"`
+	Id   string `json:"Id"`
 	Name string `json:"name"`
 	Path string `json:"path"`
+}
+
+type Playlist struct {
+	Id   string `json:"Id"`
+	Name string `json:"Name"`
 }
 
 func main() {
@@ -47,9 +55,9 @@ func main() {
 
 	fmt.Println("Successfully connected to database")
 
-	shouldIndex := false
+	shouldIndex := os.Getenv("SHOULD_INDEX")
 
-	if shouldIndex {
+	if shouldIndex == "true" {
 		fmt.Println("Indexing audio files...")
 
 		audioFiles, err := getAudioFiles("./audio/", "/audio/")
@@ -75,6 +83,10 @@ func main() {
 	tmpl := template.Must(template.ParseGlob("./templates/*.html"))
 
 	http.HandleFunc("/api/sound/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Bad Method", http.StatusMethodNotAllowed)
+			return
+		}
 		id := r.PathValue("id")
 
 		stmt, err := db.Prepare("select Id, Name, Path from sounds where id = $1")
@@ -106,7 +118,10 @@ func main() {
 	})
 
 	http.HandleFunc("/api/sounds", func(w http.ResponseWriter, r *http.Request) {
-
+		if r.Method != http.MethodGet {
+			http.Error(w, "Bad Method", http.StatusMethodNotAllowed)
+			return
+		}
 		values := r.URL.Query()
 
 		var rows *sql.Rows
@@ -153,6 +168,73 @@ func main() {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+	})
+
+	http.HandleFunc("/api/playlists", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			rows, err := db.Query("select id, name from playlists")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var playlists []Playlist
+
+			for rows.Next() {
+				var playlist Playlist
+
+				err := rows.Scan(&playlist.Id, &playlist.Name)
+
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				playlists = append(playlists, playlist)
+			}
+
+			err = tmpl.ExecuteTemplate(w, "playlist-list.html", playlists)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		case http.MethodPost:
+			defer r.Body.Close()
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, "Error reading request body", http.StatusInternalServerError)
+				return
+			}
+			if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+				http.Error(w, "Body must be form encoded", http.StatusBadRequest)
+				return
+			}
+			formData, err := url.ParseQuery(string(body))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			playlistName := formData.Get("name")
+			stmt, err := db.Prepare("insert into playlists (name) values ($1)")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			_, err = stmt.Exec(playlistName)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			// w.WriteHeader(http.StatusCreated)
+			http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+		}
+	})
+
+	http.HandleFunc("/api/sound/{id}/playlistForm", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
 	})
 
 	fmt.Println("Listening on http://localhost:3000")

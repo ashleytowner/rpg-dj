@@ -25,17 +25,23 @@
         />
       </svg>
     </button>
-    <section class="sound-list">
-      <input
-        type="search"
-        name="search"
-        hx-get="/api/sounds"
-        hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
-        hx-target="#search-results"
-        placeholder="Search for sounds..."
-      />
-      <div id="search-results"></div>
-    </section>
-    <main class="now-playing"></main>
+    <main>
+      <section class="sound-list">
+        <nav>
+          <a hx-get="/api/sounds" hx-target="#search-results">Sounds</a>
+          <a hx-get="/api/playlists" hx-target="#search-results">Playlists</a>
+        </nav>
+        <input
+          type="search"
+          name="search"
+          hx-get="/api/sounds"
+          hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
+          hx-target="#search-results"
+          placeholder="Search for sounds..."
+        />
+        <div id="search-results"></div>
+      </section>
+      <section class="now-playing"></section>
+    </main>
   </body>
 </html>

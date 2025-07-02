@@ -1,11 +1,26 @@
 {{ range . }}
-<button
-  class="audio-list-item"
-  hx-get="/api/sound/{{ .Id }}"
-  hx-target=".now-playing"
-  hx-swap="beforeend"
->
+<div class="audio-list-item">
+  <button
+    hx-get="/api/sound/{{ .Id }}"
+    hx-target=".now-playing"
+    hx-swap="beforeend"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+      <path
+        d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80L0 432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"
+      />
+    </svg>
+  </button>
   <span>{{ .Name }}</span>
   <span class="text-secondary">{{ .Path }}</span>
-</button>
+	<button hx-get="/api/sound/{{ .Id }}/playlistForm">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+      <path
+        d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zM200 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"
+      />
+    </svg>
+  </button>
+</div>
 {{end}}

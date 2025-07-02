@@ -1,0 +1,8 @@
+<form hx-post="playlist-sound/{{ .SoundId }}">
+  <select name="playlist">
+    {{ range .Playlists }}
+    <option value="{{ .Id }}">{{ .Name }}</option>
+    {{end}}
+  </select>
+  <button type="submit">Submit</button>
+</form>
