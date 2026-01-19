@@ -32,3 +32,4 @@ go.work.sum
 # .vscode/
 rpg-dj
 audio/*
+database
